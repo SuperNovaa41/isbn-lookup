@@ -136,7 +136,7 @@ void parse_json(string* s)
 		printf("Author(s): %s\n", authors->valuestring);
 	}
 
-	printf("Year of Publication: %d\n", cJSON_GetObjectItemCaseSensitive(child, "publish_year")->child->valueint);
+	printf("(First) Year of Publication: %d\n", cJSON_GetObjectItemCaseSensitive(child, "first_publish_year")->valueint);
 	printf("Page length: %d\n", cJSON_GetObjectItemCaseSensitive(child, "number_of_pages_median")->valueint);
 }
 
@@ -149,6 +149,13 @@ int main(int argc, char* argv[])
 		printf("Usage: isbn [isbn]\n");
 		return EXIT_FAILURE;
 	}
+
+	size_t input_len = strlen(argv[1]);
+	if (!(13 == input_len || 10 == input_len)) {
+		fprintf(stderr, "Invalid ISBN submitted!");
+		return EXIT_FAILURE;
+	}
+
 
 	/**
 	 * We must initialize cURL
