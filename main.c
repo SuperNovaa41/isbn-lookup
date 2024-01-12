@@ -108,6 +108,16 @@ void parse_json(string* s)
 		exit(EXIT_FAILURE);	
 	}
 
+	cJSON* numFound = cJSON_GetObjectItemCaseSensitive(json, "numFound");
+	if (0 == numFound->valueint) {
+		fprintf(stderr, "No ISBN found!\n");
+		exit(EXIT_FAILURE);
+	} else if (numFound->valueint > 1) {
+		fprintf(stderr, "Multipled ISBNs found, exiting!\n");
+		exit(EXIT_FAILURE);
+	}
+
+
 	cJSON* docs = cJSON_GetObjectItemCaseSensitive(json, "docs");
 	cJSON* child = docs->child; // this is the JSON object that stores all of the books information
 
@@ -132,7 +142,7 @@ void parse_json(string* s)
 
 int main(int argc, char* argv[])
 {
-	char isbn_buf[14];
+	char isbn_buf[14]; // want to hold a max of 14 so we can hold up to ISBN13s
 	CURLcode res;
 
 	if (2 != argc) {
