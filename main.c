@@ -97,6 +97,12 @@ CURLcode perform_book_get(char isbn_buf[14], string* s)
 	return result;
 }
 
+/**
+ * void parse_json
+ * string* s - Pointer to the string struct
+ *
+ * Parses the JSON inside of s.buf and prints the information we're looking for
+ */
 void parse_json(string* s)
 {
 	cJSON* json = cJSON_Parse(s->buf);
@@ -108,6 +114,9 @@ void parse_json(string* s)
 		exit(EXIT_FAILURE);	
 	}
 
+	/**
+	 * if there are no results, or too many, we should exit
+ 	 */
 	cJSON* numFound = cJSON_GetObjectItemCaseSensitive(json, "numFound");
 	if (0 == numFound->valueint) {
 		fprintf(stderr, "No ISBN found!\n");
@@ -123,18 +132,19 @@ void parse_json(string* s)
 
 	printf("Title: %s\n", cJSON_GetObjectItemCaseSensitive(child, "title")->valuestring);
 
+
+	/**
+	 * The author value is a linked list, so we want to loop through each value
+	 */
 	cJSON* authors = cJSON_GetObjectItemCaseSensitive(child, "author_name");
+	cJSON* authorarr = authors->child;
+
 	printf("Author(s): ");
-	if (cJSON_IsArray(authors)) {
-		cJSON* authorarr = authors->child;
-		while (NULL != authorarr->next) {
-			printf("%s, ", authorarr->valuestring);
-			authorarr = authorarr->next;
-		}
-		printf("%s\n", authorarr->valuestring);
-	} else {
-		printf("Author(s): %s\n", authors->valuestring);
+	while (NULL != authorarr->next) {
+		printf("%s, ", authorarr->valuestring);
+		authorarr = authorarr->next;
 	}
+	printf("%s\n", authorarr->valuestring);
 
 	printf("(First) Year of Publication: %d\n", cJSON_GetObjectItemCaseSensitive(child, "first_publish_year")->valueint);
 	printf("Page length: %d\n", cJSON_GetObjectItemCaseSensitive(child, "number_of_pages_median")->valueint);
