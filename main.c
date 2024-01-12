@@ -146,8 +146,10 @@ void parse_json(string* s)
 	}
 	printf("%s\n", authorarr->valuestring);
 
-	printf("(First) Year of Publication: %d\n", cJSON_GetObjectItemCaseSensitive(child, "first_publish_year")->valueint);
-	printf("Page length: %d\n", cJSON_GetObjectItemCaseSensitive(child, "number_of_pages_median")->valueint);
+	printf("(First) Year of Publication: %d\n", 
+			cJSON_GetObjectItemCaseSensitive(child, "first_publish_year")->valueint);
+	printf("Page length: %d\n", 
+			cJSON_GetObjectItemCaseSensitive(child, "number_of_pages_median")->valueint);
 }
 
 int main(int argc, char* argv[])
