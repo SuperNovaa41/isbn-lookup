@@ -210,8 +210,6 @@ void parse_json(string* s, char* options, char* isbn_buf)
 		fprintf(stderr, "Improper option provided!");
 }
 
-
-
 int main(int argc, char* argv[])
 {
 	char isbn_buf[14]; // want to hold a max of 14 so we can hold up to ISBN13s
