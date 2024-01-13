@@ -1,11 +1,15 @@
 #include <curl/curl.h>
-#include <stdio.h>
+#include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <cjson/cJSON.h>
 
 #define BASE_URL_SIZE 38
+#define FILE_NAME "books.csv"
+
+#define MAX_BUF_LEN 1024 
 
 /**
  * struct string_t
@@ -28,8 +32,7 @@ void init_string (string* s)
 	s->buf = malloc(s->len + 1);
 
 	if (NULL == s->buf) {
-		fprintf(stderr, "malloc() failed\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "malloc() failed\n"); exit(EXIT_FAILURE);
 	}
 	s->buf[0] = '\0';
 }
@@ -44,7 +47,7 @@ void init_string (string* s)
 size_t writefunc(void* ptr, size_t size, size_t nmemb, string* s)
 {
 	size_t new_len = s->len + (size * nmemb);
-	s->buf = realloc(s->buf, new_len + 1);
+	s->buf = realloc(s->buf, new_len + 1); 
 	if (NULL == s->buf) {
 		fprintf(stderr, "realloc() failed\n");
 		exit(EXIT_FAILURE);
@@ -97,14 +100,51 @@ CURLcode perform_book_get(char isbn_buf[14], string* s)
 	return result;
 }
 
+void print_book(char* isbn, char* title, char* authors, int year, int page_len)
+{
+	printf("ISBN: %s\n", isbn);
+	printf("Title: %s\n", title);
+	printf("Author(s): %s\n", authors);
+	printf("(First) Year of Publication: %d\n", year);
+	printf("Page length: %d\n", page_len);
+}
+
+void write_to_file(char* isbn, char* title, char* authors, int year, int page_len)
+{
+	FILE* file;
+	int file_exists;
+
+	/**
+	 * We want to check if the file exists
+	 * if it doesnt, we create a new one
+	 * otherwise, we write to the existing one
+	 */
+	file_exists = access(FILE_NAME, F_OK);
+	if (0 != file_exists) {
+		file = fopen(FILE_NAME, "w");
+		fprintf(file, "isbn,title,authors,year of publication,page length\n");
+	} else {
+		file = fopen(FILE_NAME, "a");
+	}
+
+	// now we write the information
+	fprintf(file, "\"%s\",\"%s\",\"%s\",%d,%d\n", isbn, title, authors, year, page_len);
+
+	fclose(file);
+}
+
 /**
  * void parse_json
  * string* s - Pointer to the string struct
  *
  * Parses the JSON inside of s.buf and prints the information we're looking for
  */
-void parse_json(string* s)
+void parse_json(string* s, char* options, char* isbn_buf)
 {
+	char *title, *temp_author;
+	int year, page_len, new_len;
+	char authors[MAX_BUF_LEN];
+
 	cJSON* json = cJSON_Parse(s->buf);
 	if (NULL == json) {
 		const char* error_ptr = cJSON_GetErrorPtr();
@@ -115,50 +155,71 @@ void parse_json(string* s)
 	}
 
 	/**
-	 * if there are no results, or too many, we should exit
+	 * if there are no results, we should exit
+	 * if theres too many, we should just treat it normally
  	 */
 	cJSON* numFound = cJSON_GetObjectItemCaseSensitive(json, "numFound");
 	if (0 == numFound->valueint) {
 		fprintf(stderr, "No ISBN found!\n");
 		exit(EXIT_FAILURE);
-	} else if (numFound->valueint > 1) {
-		fprintf(stderr, "Multipled ISBNs found, exiting!\n");
-		exit(EXIT_FAILURE);
 	}
-
 
 	cJSON* docs = cJSON_GetObjectItemCaseSensitive(json, "docs");
 	cJSON* child = docs->child; // this is the JSON object that stores all of the books information
 
-	printf("Title: %s\n", cJSON_GetObjectItemCaseSensitive(child, "title")->valuestring);
-
+	title = cJSON_GetObjectItemCaseSensitive(child, "title")->valuestring;
+	year = cJSON_GetObjectItemCaseSensitive(child, "first_publish_year")->valueint;
+	page_len = cJSON_GetObjectItemCaseSensitive(child, "number_of_pages_median")->valueint;
 
 	/**
 	 * The author value is a linked list, so we want to loop through each value
 	 */
-	cJSON* authors = cJSON_GetObjectItemCaseSensitive(child, "author_name");
-	cJSON* authorarr = authors->child;
 
-	printf("Author(s): ");
-	while (NULL != authorarr->next) {
-		printf("%s, ", authorarr->valuestring);
+	cJSON* authors_json = cJSON_GetObjectItemCaseSensitive(child, "author_name");
+	cJSON* authorarr = authors_json->child;
+
+	// we want to do this first out of the loop, because of formatting	
+	snprintf(authors, strlen(authorarr->valuestring) + 1, "%s", authorarr->valuestring);
+	authorarr = authorarr->next;
+	while (NULL != authorarr) {
+		// The plus one is for the \0, the plus two is for the ", "
+		new_len = strlen(authors) + strlen(authorarr->valuestring) + 1 + 2;
+
+		/**
+		 * So first we make a new string to hold the new string temporarily
+		 *
+		 * Then we want to add formatting by using the existing authors string
+		 * along with the next string
+		 *
+		 * Then we memcpy the temp string into the original string
+		 */
+		temp_author = malloc(sizeof(char) * new_len);
+		snprintf(temp_author, new_len, "%s, %s", authors, authorarr->valuestring);
+		memcpy(authors, temp_author, new_len);
+
+		// Free since we malloc'd
+		free(temp_author);
 		authorarr = authorarr->next;
 	}
-	printf("%s\n", authorarr->valuestring);
 
-	printf("(First) Year of Publication: %d\n", 
-			cJSON_GetObjectItemCaseSensitive(child, "first_publish_year")->valueint);
-	printf("Page length: %d\n", 
-			cJSON_GetObjectItemCaseSensitive(child, "number_of_pages_median")->valueint);
+	if (0 == strcmp(options, "r")) 
+		print_book(isbn_buf, title, authors, year, page_len);
+	else if (0 == strcmp(options, "w"))
+		write_to_file(isbn_buf, title, authors, year, page_len);
+	else
+		fprintf(stderr, "Improper option provided!");
 }
+
+
 
 int main(int argc, char* argv[])
 {
 	char isbn_buf[14]; // want to hold a max of 14 so we can hold up to ISBN13s
+	char options[2];
 	CURLcode res;
 
-	if (2 != argc) {
-		printf("Usage: isbn [isbn]\n");
+	if (3 != argc) {
+		printf("Usage: isbn [isbn] [options]\n");
 		return EXIT_FAILURE;
 	}
 
@@ -167,7 +228,6 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "Invalid ISBN submitted!");
 		return EXIT_FAILURE;
 	}
-
 
 	/**
 	 * We must initialize cURL
@@ -180,6 +240,11 @@ int main(int argc, char* argv[])
 	snprintf(isbn_buf, 14, "%s", argv[1]);
 
 	/**
+	 * Grab the formatting options from argv
+	 */
+	snprintf(options, 2, "%s", argv[2]);
+
+	/**
 	 * Setup the output string
 	 */
 	string get_output;
@@ -187,7 +252,8 @@ int main(int argc, char* argv[])
 
 	/**
 	 *  Perform the get request
-	 */ res = perform_book_get(isbn_buf, &get_output);
+	 */ 
+	res = perform_book_get(isbn_buf, &get_output);
 	if (0 != res) {
 		fprintf(stderr, "Failed to perform the get request!\n");
 		return EXIT_FAILURE;
@@ -196,7 +262,7 @@ int main(int argc, char* argv[])
 	/**
 	 * Now we want to parse the JSON input
 	 */
-	parse_json(&get_output);
+	parse_json(&get_output, options, isbn_buf);
 
 	/**
 	 * We need to free this string
