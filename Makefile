@@ -1,4 +1,4 @@
 all: main.c
-	gcc main.c -lcurl -lcjson -o isbn -Wall
+	gcc main.c json.c curl.c -lcurl -lcjson -o isbn -Wall
 clean:
 	rm isbn
