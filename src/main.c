@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
 	else if (options[0] == 'r')
 		print_book(&new_book);
 
+	free(new_book.authors);
 
 	return 0;
 }
