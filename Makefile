@@ -1,4 +1,5 @@
-all: main.c
-	gcc main.c json.c curl.c -lcurl -lcjson -o isbn -Wall
+all: src/*.c
+	gcc src/main.c src/json.c src/curl.c -lcurl -lcjson -o isbn -Wall
+	mv isbn build
 clean:
 	rm isbn
