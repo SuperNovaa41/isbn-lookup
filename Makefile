@@ -3,4 +3,4 @@ all: src/*.c
 	mkdir -p build
 	mv isbn build
 clean:
-	rm isbn
+	rm -rf build
