@@ -12,6 +12,11 @@
 
 #define MAX_BUF_LEN 1024 
 
+enum book_options {
+	PRINT_TO_STDIN,
+	WRITE_TO_FILE	
+};
+
 void print_book(book_t* book)
 {
 	printf("ISBN: %s\n", book->isbn);
@@ -46,12 +51,23 @@ void write_to_file(book_t* book)
 	fclose(file);
 }
 
+void do_output(book_t* book, enum book_options output_type)
+{
+	if (WRITE_TO_FILE == output_type) {
+		write_to_file(book);
+		return;
+	}
+	print_book(book);
+}
+
 int main(int argc, char* argv[])
 {
-	char isbn_buf[14]; // want to hold a max of 14 so we can hold up to ISBN13s
+	// want to hold a max of 14 so we can hold up to ISBN13s
+	char isbn_buf[14];
 	char options[2];
 	CURLcode res;
 	book_t new_book;
+	enum book_options output_type;
 
 	if (3 != argc) {
 		printf("Usage: isbn [isbn] [options]\n");
@@ -65,35 +81,32 @@ int main(int argc, char* argv[])
 	}
 
 
-	/**
-	 * We must initialize cURL
-	 */
+	// We must initialize cURL
 	curl_global_init(CURL_GLOBAL_ALL);
 
-	/**
-	 * Grab the ISBN from argv
-	 */
+	// Grab the ISBN from argv
 	snprintf(isbn_buf, 14, "%s", argv[1]);
 
-	/**
-	 * Grab the formatting options from argv
-	 */
+	// Grab the formatting options from argv
 	snprintf(options, 2, "%s", argv[2]);
-	if (!(('w' == options[0]) || ('r' == options[0]))) {
-		fprintf(stderr, "Invalid option submitted!\n");
-		return EXIT_FAILURE;
+	switch(options[0]) {
+		case 'w':
+			output_type = WRITE_TO_FILE;
+			break;
+		case 'r':
+			output_type = PRINT_TO_STDIN;
+			break;
+		default:
+			fprintf(stderr, "Invalid option provided!\n");
+			return EXIT_FAILURE;
 	}
 
 
-	/**
-	 * Setup the output string
-	 */
+	// Setup the output string
 	string get_output;
 	init_string(&get_output);
 
-	/**
-	 *  Perform the get request
-	 */ 
+	//  Perform the get request
 	res = perform_book_get(isbn_buf, &get_output);
 	if (0 != res) {
 		fprintf(stderr, "Failed to perform the get request!\n");
@@ -101,24 +114,16 @@ int main(int argc, char* argv[])
 	}
 
 
-	/**
-	 * Now we want to parse the JSON input
-	 */
+	// Now we want to parse the JSON input
 	parse_json(&get_output, isbn_buf, &new_book);
 
-	/**
-	 * We need to free this string
-	 */
+	// We need to free this string
 	free(get_output.buf);
 
-	/**
-	 * NOW we either print or save the book
-	 */
-	if (options[0] == 'w')
-		write_to_file(&new_book);
-	else if (options[0] == 'r')
-		print_book(&new_book);
+	//  NOW we either print or save the book
+	do_output(&new_book, output_type);
 
+	// Need to tree this string
 	free(new_book.authors);
 
 	return 0;
