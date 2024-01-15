@@ -85,10 +85,10 @@ int main(int argc, char* argv[])
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	// Grab the ISBN from argv
-	snprintf(isbn_buf, 14, "%s", argv[1]);
+	memcpy(isbn_buf, argv[1], 14);
 
 	// Grab the formatting options from argv
-	snprintf(options, 2, "%s", argv[2]);
+	memcpy(options, argv[2], 2);
 	switch(options[0]) {
 		case 'w':
 			output_type = WRITE_TO_FILE;
