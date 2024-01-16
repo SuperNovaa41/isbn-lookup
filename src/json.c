@@ -17,7 +17,7 @@ void check_valid_query(cJSON* numfound)
 	exit(EXIT_FAILURE);
 }
 
-void get_authors(cJSON* bookinfo, char authors[256])
+void get_authors(cJSON* bookinfo, char* authors)
 {
 	char* temp_author;
 	size_t new_len;
