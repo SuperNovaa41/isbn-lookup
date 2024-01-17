@@ -12,6 +12,13 @@
 
 #define MAX_BUF_LEN 1024 
 
+/**
+ * TODO: we need to check the csv file for duplicates
+ * TODO: assign an ID to each book
+ * TODO: allow us to remove a book from the csv and update the ids
+ */
+
+
 enum book_options {
 	PRINT_TO_STDIN,
 	WRITE_TO_FILE	
