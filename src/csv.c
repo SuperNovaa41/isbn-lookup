@@ -31,14 +31,34 @@ int get_next_id()
 	return atoi(id) + 1;
 }
 
-long find_id(int id_to_find)
+void update_line(char** line, int new_id)
 {
-	FILE* csv;
+	int i;
 	char* buffer;
-	size_t line_size = MAX_BUFFER_SIZE - 1;
-	int i, file_exists;
-	long file_pos;
+	for (i = 0; i < MAX_BUFFER_SIZE; i++) {
+		if ((*line)[i] == ',')
+			break;
+	}
+	
+	if (i == MAX_BUFFER_SIZE - 1) {
+		fprintf(stderr, "There was an error in %s file!\n", FILE_NAME);
+		exit(EXIT_FAILURE);
+	}
 
+	buffer = malloc(sizeof(char) * MAX_BUFFER_SIZE);
+	strncpy(buffer, (*line) + i, MAX_BUFFER_SIZE);
+
+	snprintf(*line, MAX_BUFFER_SIZE, "%d%s", new_id, buffer);
+	free(buffer);
+}
+
+void remove_line_from_file(int id_to_remove)
+{
+	int file_exists, line_count;
+	FILE* csv;
+	FILE* new_csv;
+	char* line;
+	size_t line_size = MAX_BUFFER_SIZE;
 
 	file_exists = access(FILE_NAME, F_OK);
 	if (0 != file_exists) {
@@ -52,15 +72,24 @@ long find_id(int id_to_find)
 		exit(EXIT_FAILURE);
 	}
 
-	for(i = 0; i < id_to_find + 1; i++)
-		getline(&buffer, &line_size, csv);
+	new_csv = fopen("temp.csv", "w");
 
-	file_pos = ftell(csv);
+	line_count = 0;
+	while(getline(&line, &line_size, csv) != -1) {
+		if (id_to_remove > line_count) {
+			fprintf(new_csv, "%s", line);
+		} else if (id_to_remove < line_count) {
+			update_line(&line, line_count - 1);
+			fprintf(new_csv, "%s", line);
+		}
+		line_count++;
+	}
+	fclose(new_csv);
 	fclose(csv);
 
-	return file_pos;
+	remove(FILE_NAME);
+	rename("temp.csv", FILE_NAME); // new csv is now the original file, without that line
 }
-
 
 void write_to_file(book_t* book)
 {

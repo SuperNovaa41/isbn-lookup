@@ -58,6 +58,7 @@ void do_ISBN_get(char* argv[])
 
 void process_args(char* argv[])
 {
+	int id;
 	if (0 == strcmp(argv[1], "--help")) {
 		printf("%s - An ISBN lookup tool.\n", argv[0]);
 		printf("Author: Nathan Singer\n");
@@ -68,8 +69,19 @@ void process_args(char* argv[])
 		puts("[isbn] -- Attempts to download a book from the given ISBN-10 or ISBN-13 input.");
 		puts("remove [id] -- Removes a book with the given ID from the book database.");
 	} else if (0 == strcmp(argv[1], "remove")) {
-		// remove a book here
-		return;
+		if (NULL == argv[2]) {
+			printf("Not enough arguments! Try typing %s --help\n", argv[0]);
+			exit(EXIT_FAILURE);
+		}
+
+		id = atoi(argv[2]);
+
+		if (0 == id) {
+			printf("Invalid book ID given!\n");
+			exit(EXIT_FAILURE);
+		}
+
+		remove_line_from_file(id);
 	} else {
 		// lets assume its an ISBN and let the other functions fail if its not
 		do_ISBN_get(argv);
@@ -80,8 +92,6 @@ void process_args(char* argv[])
 
 int main(int argc, char* argv[])
 {
-	return 0;
-	
 	if (1 == argc) {
 		printf("Not enough arguments! Try typing %s --help\n", argv[0]);
 		return EXIT_FAILURE;

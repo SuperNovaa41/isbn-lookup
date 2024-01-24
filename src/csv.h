@@ -19,11 +19,20 @@ int get_next_id();
 void write_to_file(book_t* book);
 
 /**
- * long find_id
- * int id_to_find - The ID we're looking for
+ * void remove_line_from_file
+ * int id_to_remove - The book ID that we don't want anymore
  *
- * Returns the position of a FILE to the line with the ID we're looking for
+ * Removes a book from the CSV file
  */
-long find_id(int id_to_find);
+void remove_line_from_file(int id_to_remove);
+
+/**
+ * void update_line
+ * char** line - Pointer to the book entry string
+ * int new_id - The new ID that should be placed into this book entry
+ *
+ * Takes a book entry and changes the ID to the given one
+ */
+void update_line(char** line, int new_id);
 
 #endif
