@@ -15,7 +15,6 @@
  * TODO: we need to check the csv file for duplicates
  * TODO: allow us to remove a book from the csv and update the ids
  */
-
 void do_ISBN_get(char* argv[])
 {
 	// want to hold a max of 14 so we can hold up to ISBN13s
@@ -59,7 +58,7 @@ void do_ISBN_get(char* argv[])
 
 void process_args(char* argv[])
 {
-	if (strcmp(argv[1], "--help")) {
+	if (0 == strcmp(argv[1], "--help")) {
 		printf("%s - An ISBN lookup tool.\n", argv[0]);
 		printf("Author: Nathan Singer\n");
 
@@ -68,7 +67,7 @@ void process_args(char* argv[])
 		puts("--help - Shows this message.");
 		puts("[isbn] -- Attempts to download a book from the given ISBN-10 or ISBN-13 input.");
 		puts("remove [id] -- Removes a book with the given ID from the book database.");
-	} else if (strcmp(argv[1], "remove")) {
+	} else if (0 == strcmp(argv[1], "remove")) {
 		// remove a book here
 		return;
 	} else {
