@@ -41,7 +41,7 @@ void update_line(char** line, int new_id)
 	}
 	
 	if (i == MAX_BUFFER_SIZE - 1) {
-		fprintf(stderr, "There was an error in %s file!\n", FILE_NAME);
+		fprintf(stderr, "There was an error in the file: %s\n", FILE_NAME);
 		exit(EXIT_FAILURE);
 	}
 
