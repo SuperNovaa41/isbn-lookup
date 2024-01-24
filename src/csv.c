@@ -9,7 +9,7 @@
 #include "json.h"
 #include "csv.h"
 
-#define MAX_BUFFER_SIZE 512
+#define MAX_BUFFER_SIZE 1024
 
 int get_next_id()
 {
@@ -31,6 +31,37 @@ int get_next_id()
 	return atoi(id) + 1;
 }
 
+long find_id(int id_to_find)
+{
+	FILE* csv;
+	char* buffer;
+	size_t line_size = MAX_BUFFER_SIZE - 1;
+	int i, file_exists;
+	long file_pos;
+
+
+	file_exists = access(FILE_NAME, F_OK);
+	if (0 != file_exists) {
+		fprintf(stderr, "%s does not exist!", FILE_NAME);
+		exit(EXIT_FAILURE);
+	}
+
+	csv = fopen(FILE_NAME, "r");
+	if (NULL == csv) {
+		fprintf(stderr, "Failed to open %s!\n", FILE_NAME);
+		exit(EXIT_FAILURE);
+	}
+
+	for(i = 0; i < id_to_find + 1; i++)
+		getline(&buffer, &line_size, csv);
+
+	file_pos = ftell(csv);
+	fclose(csv);
+
+	return file_pos;
+}
+
+
 void write_to_file(book_t* book)
 {
 	FILE* file;
@@ -50,6 +81,11 @@ void write_to_file(book_t* book)
 	} else {
 		file = fopen(FILE_NAME, "a");
 		book_id = get_next_id();
+	}
+
+	if (NULL == file) {
+		fprintf(stderr, "Failed to open %s!\n", FILE_NAME);
+		exit(EXIT_FAILURE);
 	}
 
 	// now we write the information

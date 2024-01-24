@@ -80,6 +80,8 @@ void process_args(char* argv[])
 
 int main(int argc, char* argv[])
 {
+	return 0;
+	
 	if (1 == argc) {
 		printf("Not enough arguments! Try typing %s --help\n", argv[0]);
 		return EXIT_FAILURE;
