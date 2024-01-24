@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 
 	size_t input_len = strlen(argv[1]);
 	if (!(13 == input_len || 10 == input_len)) {
-		fprintf(stderr, "Invalid ISBN submitted!");
+		fprintf(stderr, "Invalid ISBN submitted!\n");
 		return EXIT_FAILURE;
 	}
 
