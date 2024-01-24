@@ -7,8 +7,7 @@
 
 #include "curl.h"
 #include "json.h"
-
-#define FILE_NAME "books.csv"
+#include "csv.h"
 
 #define MAX_BUF_LEN 1024 
 
@@ -33,30 +32,6 @@ void print_book(book_t* book)
 	printf("Page length: %d\n", book->page_len);
 }
 
-void write_to_file(book_t* book)
-{
-	FILE* file;
-	int file_exists;
-
-	/**
-	 * We want to check if the file exists
-	 * if it doesnt, we create a new one
-	 * otherwise, we write to the existing one
-	 */
-	file_exists = access(FILE_NAME, F_OK);
-	if (0 != file_exists) {
-		file = fopen(FILE_NAME, "w");
-		fprintf(file, "isbn,title,authors,year of publication,page length\n");
-	} else {
-		file = fopen(FILE_NAME, "a");
-	}
-
-	// now we write the information
-	fprintf(file, "\"%s\",\"%s\",\"%s\",%d,%d\n", 
-			book->isbn, book->title, book->authors, book->year_of_publication, book->page_len);
-
-	fclose(file);
-}
 
 void do_output(book_t* book, enum book_options output_type)
 {

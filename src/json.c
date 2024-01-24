@@ -40,6 +40,22 @@ void get_authors(cJSON* bookinfo, char* authors)
 	}
 }
 
+
+void get_image_link(cJSON* bookinfo, book_t* book)
+{
+	int image_id = cJSON_GetObjectItemCaseSensitive(bookinfo, "cover_i")->valueint;
+
+
+	const char* begin = "https://covers.openlibrary.org/b/id/";
+	const char* end = "-L.jpg";
+
+	book->image_url = malloc(sizeof(char) * MAX_BUF_LEN);
+
+	sprintf(book->image_url, "%s%d%s", begin, image_id, end);
+
+
+}
+
 void parse_json(string* s, char* isbn, book_t* book)
 {
 	char authors[MAX_BUF_LEN];
@@ -63,7 +79,7 @@ void parse_json(string* s, char* isbn, book_t* book)
 	book->page_len = cJSON_GetObjectItemCaseSensitive(bookinfo, "number_of_pages_median")->valueint;
 
 	get_authors(bookinfo, authors);
-
+	get_image_link(bookinfo, book);
 	// Need to malloc, because we need to copy authors into the book struct
 	book->authors = (char*) malloc(sizeof(char) * (strlen(authors) + 1));
 	memcpy(book->authors, authors, strlen(authors) + 1);

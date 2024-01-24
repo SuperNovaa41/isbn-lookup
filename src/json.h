@@ -7,6 +7,7 @@ typedef struct book_t {
 	char* isbn;
 	char* title;
 	char* authors;
+	char* image_url;
 	int year_of_publication;
 	int page_len;
 } book_t;
