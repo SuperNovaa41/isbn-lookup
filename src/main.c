@@ -13,76 +13,28 @@
 
 /**
  * TODO: we need to check the csv file for duplicates
- * TODO: assign an ID to each book
  * TODO: allow us to remove a book from the csv and update the ids
  */
 
-
-enum book_options {
-	PRINT_TO_STDIN,
-	WRITE_TO_FILE	
-};
-
-void print_book(book_t* book)
-{
-	printf("ISBN: %s\n", book->isbn);
-	printf("Title: %s\n", book->title);
-	printf("Author(s): %s\n", book->authors);
-	printf("(First) Year of Publication: %d\n", book->year_of_publication);
-	printf("Page length: %d\n", book->page_len);
-}
-
-
-void do_output(book_t* book, enum book_options output_type)
-{
-	if (WRITE_TO_FILE == output_type) {
-		write_to_file(book);
-		return;
-	}
-	print_book(book);
-}
-
-int main(int argc, char* argv[])
+void do_ISBN_get(char* argv[])
 {
 	// want to hold a max of 14 so we can hold up to ISBN13s
 	char isbn_buf[14];
-	char options[2];
-	CURLcode res;
 	book_t new_book;
-	enum book_options output_type;
-
-	if (3 != argc) {
-		printf("Usage: isbn [isbn] [options]\n");
-		return EXIT_FAILURE;
-	}
-
+	CURLcode res;
 	size_t input_len = strlen(argv[1]);
+
+
 	if (!(13 == input_len || 10 == input_len)) {
 		fprintf(stderr, "Invalid ISBN submitted!\n");
-		return EXIT_FAILURE;
+		exit(EXIT_FAILURE);
 	}
-
 
 	// We must initialize cURL
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	// Grab the ISBN from argv
 	memcpy(isbn_buf, argv[1], 14);
-
-	// Grab the formatting options from argv
-	memcpy(options, argv[2], 2);
-	switch(options[0]) {
-		case 'w':
-			output_type = WRITE_TO_FILE;
-			break;
-		case 'r':
-			output_type = PRINT_TO_STDIN;
-			break;
-		default:
-			fprintf(stderr, "Invalid option provided!\n");
-			return EXIT_FAILURE;
-	}
-
 
 	// Setup the output string
 	string get_output;
@@ -92,21 +44,49 @@ int main(int argc, char* argv[])
 	res = perform_book_get(isbn_buf, &get_output);
 	if (0 != res) {
 		fprintf(stderr, "Failed to perform the get request!\n");
-		return EXIT_FAILURE;
+		exit(EXIT_FAILURE);
 	}
-
 
 	// Now we want to parse the JSON input
 	parse_json(&get_output, isbn_buf, &new_book);
 
-	// We need to free this string
+	write_to_file(&new_book);
+
+	// we need to free these strings
 	free(get_output.buf);
-
-	//  NOW we either print or save the book
-	do_output(&new_book, output_type);
-
-	// Need to tree this string
 	free(new_book.authors);
+}
+
+void process_args(char* argv[])
+{
+	if (strcmp(argv[1], "--help")) {
+		printf("%s - An ISBN lookup tool.\n", argv[0]);
+		printf("Author: Nathan Singer\n");
+
+		puts("\n");
+
+		puts("--help - Shows this message.");
+		puts("[isbn] -- Attempts to download a book from the given ISBN-10 or ISBN-13 input.");
+		puts("remove [id] -- Removes a book with the given ID from the book database.");
+	} else if (strcmp(argv[1], "remove")) {
+		// remove a book here
+		return;
+	} else {
+		// lets assume its an ISBN and let the other functions fail if its not
+		do_ISBN_get(argv);
+	}
+}
+
+
+
+int main(int argc, char* argv[])
+{
+	if (1 == argc) {
+		printf("Not enough arguments! Try typing %s --help\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+
+	process_args(argv);
 
 	return 0;
 }
