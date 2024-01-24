@@ -76,6 +76,7 @@ void write_to_file(book_t* book)
 	file_exists = access(FILE_NAME, F_OK);
 	if (0 != file_exists) {
 		file = fopen(FILE_NAME, "w");
+		// write the csv headers to the file since we're making it
 		fprintf(file, "id,isbn,title,authors,imageurl,year of publication,page length\n");
 		book_id = 1;
 	} else {
