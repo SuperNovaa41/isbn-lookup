@@ -54,6 +54,7 @@ void do_ISBN_get(char* argv[])
 	// we need to free these strings
 	free(get_output.buf);
 	free(new_book.authors);
+	free(new_book.image_url);
 }
 
 void process_args(char* argv[])

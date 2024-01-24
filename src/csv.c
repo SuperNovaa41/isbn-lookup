@@ -62,7 +62,7 @@ void remove_line_from_file(int id_to_remove)
 
 	file_exists = access(FILE_NAME, F_OK);
 	if (0 != file_exists) {
-		fprintf(stderr, "%s does not exist!", FILE_NAME);
+		fprintf(stderr, "%s does not exist!\n", FILE_NAME);
 		exit(EXIT_FAILURE);
 	}
 
