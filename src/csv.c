@@ -91,6 +91,8 @@ void remove_line_from_file(int id_to_remove)
 	fclose(new_csv);
 	fclose(csv);
 
+	free(line); // man pages say this should be freed
+
 	remove(FILE_NAME);
 	rename("temp.csv", FILE_NAME); // new csv is now the original file, without that line
 }
