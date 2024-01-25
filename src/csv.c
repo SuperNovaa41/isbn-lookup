@@ -57,7 +57,7 @@ void remove_line_from_file(int id_to_remove)
 	int file_exists, line_count;
 	FILE* csv;
 	FILE* new_csv;
-	char* line;
+	char* line = NULL;
 	size_t line_size = MAX_BUFFER_SIZE;
 
 	file_exists = access(FILE_NAME, F_OK);
