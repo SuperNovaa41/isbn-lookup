@@ -73,6 +73,10 @@ void remove_line_from_file(int id_to_remove)
 	}
 
 	new_csv = fopen("temp.csv", "w");
+	if (NULL == new_csv) {
+		fprintf(stderr, "Failed to create temp.csv!\n");
+		exit(EXIT_FAILURE);
+	}
 
 	line_count = 0;
 	while(getline(&line, &line_size, csv) != -1) {
