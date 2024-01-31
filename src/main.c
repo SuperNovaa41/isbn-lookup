@@ -12,10 +12,6 @@
 
 #define MAX_BUF_LEN 1024 
 
-/**
- * TODO: we need to check the csv file for duplicates
- * TODO: allow us to remove a book from the csv and update the ids
- */
 void do_ISBN_get(char* argv[])
 {
 	// want to hold a max of 14 so we can hold up to ISBN13s
@@ -70,7 +66,6 @@ void print_help_menu(char* program)
 	puts("remove [id] -- Removes a book with the given ID from the book database.");
 }
 
-
 void process_args(char* argv[])
 {
 	int id;
@@ -94,8 +89,6 @@ void process_args(char* argv[])
 		do_ISBN_get(argv);
 	}
 }
-
-
 
 int main(int argc, char* argv[])
 {
