@@ -27,10 +27,16 @@ void do_db_entry(enum DB_OPTIONS option, ...)
 	setup_db(db);
 
 	va_start(args, option);
-	if (ADD == option) {
-		add_to_db(va_arg(args, book_t*), db);
-	} else if (REMOVE == option) {
-		remove_from_db(va_arg(args, int), db);
+	switch(option) {
+		case ADD:
+			add_to_db(va_arg(args, book_t*), db);
+			break;
+		case REMOVE:
+			remove_from_db(va_arg(args, int), db);
+			break;
+		default:
+			fprintf(stderr, "Invalid db command given!\n");
+			break;
 	}
 	va_end(args);
 
