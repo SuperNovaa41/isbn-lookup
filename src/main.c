@@ -3,11 +3,12 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
+#include <sqlite3.h>
 #include <unistd.h>
 
 #include "curl.h"
 #include "json.h"
-#include "csv.h"
+#include "db.h"
 
 #define MAX_BUF_LEN 1024 
 
@@ -49,7 +50,7 @@ void do_ISBN_get(char* argv[])
 	// Now we want to parse the JSON input
 	parse_json(&get_output, isbn_buf, &new_book);
 
-	write_to_file(&new_book);
+	do_db_entry(ADD, &new_book);
 
 	// we need to free these strings
 	free(get_output.buf);
@@ -57,18 +58,24 @@ void do_ISBN_get(char* argv[])
 	free(new_book.image_url);
 }
 
+void print_help_menu(char* program)
+{
+	printf("%s - An ISBN lookup tool.\n", program);
+	printf("Author: Nathan Singer\n");
+
+	puts("\n");
+
+	puts("--help - Shows this message.");
+	puts("[isbn] -- Attempts to download a book from the given ISBN-10 or ISBN-13 input.");
+	puts("remove [id] -- Removes a book with the given ID from the book database.");
+}
+
+
 void process_args(char* argv[])
 {
 	int id;
 	if (0 == strcmp(argv[1], "--help")) {
-		printf("%s - An ISBN lookup tool.\n", argv[0]);
-		printf("Author: Nathan Singer\n");
-
-		puts("\n");
-
-		puts("--help - Shows this message.");
-		puts("[isbn] -- Attempts to download a book from the given ISBN-10 or ISBN-13 input.");
-		puts("remove [id] -- Removes a book with the given ID from the book database.");
+		print_help_menu(argv[0]);
 	} else if (0 == strcmp(argv[1], "remove")) {
 		if (NULL == argv[2]) {
 			printf("Not enough arguments! Try typing %s --help\n", argv[0]);
@@ -81,8 +88,7 @@ void process_args(char* argv[])
 			printf("Invalid book ID given!\n");
 			exit(EXIT_FAILURE);
 		}
-
-		remove_line_from_file(id);
+		do_db_entry(REMOVE, id);
 	} else {
 		// lets assume its an ISBN and let the other functions fail if its not
 		do_ISBN_get(argv);
@@ -99,6 +105,7 @@ int main(int argc, char* argv[])
 	}
 
 	process_args(argv);
+	
 
 	return 0;
 }
