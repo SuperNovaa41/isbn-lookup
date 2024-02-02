@@ -10,6 +10,11 @@ typedef struct book_t {
 	char* image_url;
 	int year_of_publication;
 	int page_len;
+	char* subjects;
+	char* date_added;
+	char* publication_date;
+	char* subtitle;
+	
 } book_t;
 
 /**

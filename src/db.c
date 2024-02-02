@@ -47,11 +47,13 @@ void setup_db(sqlite3* db)
 {
 	int rc;
 	char* err_msg = 0;
-	char* sql;
 
-	sql = "CREATE TABLE IF NOT EXISTS books (isbn TEXT, title TEXT, authors TEXT, imageurl TEXT, year_of_publication YEAR, page_length UNSIGNED INT);";
-
-	rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+	rc = sqlite3_exec(db, 
+			"CREATE TABLE IF NOT EXISTS books (id UNSIGNED INT PRIMARY KEY, \
+			isbn TEXT, title TEXT, authors TEXT, imageurl TEXT, year_of_publication YEAR, \
+			page_length UNSIGNED INT, subjects TEXT, date_added TEXT, date_completed TEXT, \
+			progress UNSIGNED TINYINT, publication_date TEXT, subtitle TEXT);", 
+			0, 0, &err_msg);
 
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "SQL error: %s\n", err_msg);
@@ -67,10 +69,24 @@ void setup_db(sqlite3* db)
 void add_to_db(book_t* book, sqlite3* db)
 {
 	char* sql;
-	int asp_err, rc;
+	int asp_err, rc, entries = 0;
 	char* err_msg = 0;
 
-	asp_err = asprintf(&sql, "INSERT INTO books (isbn, title, authors, imageurl, year_of_publication, page_length) VALUES(\"%s\", \"%s\", \"%s\", \"%s\", %d, %d);", book->isbn, book->title, book->authors, book->image_url, book->year_of_publication, book->page_len);
+	sqlite3_stmt* getmsg;
+	sqlite3_prepare(db, "SELECT * FROM BOOKS;", -1, &getmsg, NULL);
+	while (sqlite3_step(getmsg) == SQLITE_ROW)
+		entries++;
+	sqlite3_finalize(getmsg);
+
+	entries++; // new id!!
+
+	asp_err = asprintf(&sql, "INSERT INTO books \
+			(id, isbn, title, authors, imageurl, year_of_publication, \
+			 page_length, subjects, date_added, publication_date, subtitle) \
+			VALUES(%d, \"%s\", \"%s\", \"%s\", \"%s\", %d, %d, \"%s\", \"%s\", \"%s\", \"%s\");", 
+			entries, book->isbn, book->title, book->authors, book->image_url, book->year_of_publication, 
+			book->page_len, book->subjects, book->date_added, book->publication_date, book->subtitle);
+
 	if (-1 == asp_err) {
 		fprintf(stderr, "asprintf failed!\n");
 		exit(EXIT_FAILURE);
